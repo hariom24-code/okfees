@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+
+/* Custom component helpers are defined in src/App.css as plain CSS to avoid @apply issues */
+
+@tailwind utilities;
