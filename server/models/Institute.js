@@ -1,36 +1,25 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
-const InstituteSchema = new mongoose.Schema({
+const instituteSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please add a name'],
+    required: true,
   },
   email: {
     type: String,
-    required: [true, 'Please add an email'],
+    required: true,
     unique: true,
-    match: [
-      /\S+@\S+\.\S+/,
-      'Please add a valid email',
-    ],
   },
-  password: {
+  phone: {
     type: String,
-    required: [true, 'Please add a password'],
-    minlength: 6,
-    select: false,
   },
   address: {
     type: String,
   },
-  contact: {
+  password: {
     type: String,
-  },
-  logo: {
-    type: String,
-  },
-  description: {
-    type: String,
+    required: true,
   },
   createdAt: {
     type: Date,
@@ -38,18 +27,17 @@ const InstituteSchema = new mongoose.Schema({
   },
 });
 
-// Hash password before saving
-InstituteSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-
-  try {
-    const bcrypt = require('bcryptjs');
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (err) {
-    next(err);
-  }
+// 🔒 Hash password before saving
+instituteSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
-module.exports = mongoose.model('Institute', InstituteSchema);
+// ✅ Compare password during login
+instituteSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+module.exports = mongoose.model("Institute", instituteSchema);

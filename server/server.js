@@ -1,29 +1,76 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const connectDB = require('./config/db');
+// server.js
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const connectDB = require("./config/db");
 
-// Load env vars
+// ✅ Load environment variables
 dotenv.config();
 
-// Connect to database
-// Set minimal JWT defaults for local development
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'devsecret';
-process.env.JWT_EXPIRE = process.env.JWT_EXPIRE || '30d';
+// ✅ Defaults for local dev
+process.env.JWT_SECRET = process.env.JWT_SECRET || "devsecret";
+process.env.JWT_EXPIRE = process.env.JWT_EXPIRE || "30d";
+process.env.CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+process.env.PORT = process.env.PORT || 5000;
 
+// ✅ Connect MongoDB
 connectDB();
 
 const app = express();
 
-// Body parser
+// ✅ Middleware
 app.use(express.json());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  })
+);
 
-// Enable CORS
-app.use(cors());
+// ✅ Passport (optional)
+try {
+  const passport = require("passport");
+  const session = require("express-session");
+  require("./config/passport");
 
-// Mount routers
-app.use('/api/auth', require('./routes/auth'));
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "mysecret",
+      resave: false,
+      saveUninitialized: false,
+    })
+  );
 
-const PORT = process.env.PORT || 5000;
+  app.use(passport.initialize());
+  app.use(passport.session());
+  console.log("✅ Passport initialized successfully");
+} catch (err) {
+  console.warn("⚠️ Passport not configured or missing. Skipping OAuth setup.");
+}
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ✅ Import Routes
+const authRoutes = require("./routes/auth");
+const studentRoutes = require("./routes/studentRoutes");
+const batchRoutes = require("./routes/batchRoutes");
+const mockAuthRoutes = require("./routes/mockAuth");
+
+// ✅ Mount Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/students", studentRoutes);
+app.use("/api/batches", batchRoutes);
+app.use("/api/mock/auth", mockAuthRoutes);
+
+// ✅ Root
+app.get("/", (req, res) => {
+  res.send("✅ OkFees API is running...");
+});
+
+// ✅ Error Handler
+app.use((err, req, res, next) => {
+  console.error("❌ Server Error:", err.stack);
+  res.status(500).json({ error: "Internal server error" });
+});
+
+// ✅ Start Server
+const PORT = process.env.PORT;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

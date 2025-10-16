@@ -9,7 +9,11 @@ const connectDB = async () => {
     if (!mongoUri) {
       // Lazy require to keep install-time small unless used
       const { MongoMemoryServer } = require('mongodb-memory-server');
-      mongodInstance = await MongoMemoryServer.create();
+      mongodInstance = await MongoMemoryServer.create({
+        instance: {
+          startupTimeout: 60000
+        }
+      });
       mongoUri = mongodInstance.getUri();
       console.log('Started in-memory MongoDB for development');
     }

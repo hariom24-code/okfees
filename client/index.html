@@ -4,6 +4,26 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Load Tailwind via CDN for quick development fallback so utility classes work without full PostCSS build -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Diagnostic: log Tailwind Play CDN initialization and style tags to the console -->
+    <script>
+      (function(){
+        // Wait a short time for the CDN to initialize and inject styles
+        setTimeout(() => {
+          try {
+            const tailwindPresent = typeof window.tailwind !== 'undefined';
+            const styleTags = Array.from(document.querySelectorAll('style'));
+            const tailwindStyle = styleTags.find(s => (s.id && s.id.includes('tailwind')) || (s.innerText && s.innerText.includes('--tw')) );
+            console.info('TAILWIND DIAGNOSTIC:', { tailwindPresent, tailwindStyleId: tailwindStyle ? (tailwindStyle.id || null) : null, styleTagCount: styleTags.length });
+            if (!tailwindPresent) console.warn('Tailwind Play CDN not detected on window.tailwind.');
+            if (!tailwindStyle) console.warn('No injected Tailwind style tag found (no --tw tokens).');
+          } catch (e) {
+            console.error('TAILWIND DIAGNOSTIC ERROR', e);
+          }
+        }, 700);
+      })();
+    </script>
     <title>client</title>
   </head>
   <body>

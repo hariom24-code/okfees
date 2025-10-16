@@ -3,9 +3,14 @@ import { createRoot } from 'react-dom/client'
 // Import our new consolidated CSS file
 import './assets/css/main.css'
 import App from './App.jsx'
+import ErrorOverlay from './ErrorOverlay'
+import ToastProvider from './components/ToastProvider'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <ToastProvider>
+      <App />
+      <ErrorOverlay />
+    </ToastProvider>
   </StrictMode>,
 )

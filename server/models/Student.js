@@ -1,52 +1,16 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const StudentSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Please add a name'],
-  },
-  studentId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  email: {
-    type: String,
-    required: [true, 'Please add an email'],
-    unique: true,
-    match: [
-      /\S+@\S+\.\S+/,
-      'Please add a valid email',
-    ],
-  },
-  password: {
-    type: String,
-    required: [true, 'Please add a password'],
-    minlength: 6,
-    select: false,
-  },
-  institute: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Institute',
-    required: true,
-  },
-  batch: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Batch',
-  },
-  contact: {
-    type: String,
-  },
-  parentDetails: {
-    type: String,
-  },
-  profilePhoto: {
-    type: String,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+const studentSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phone: { type: String },
+  parentName: { type: String },
+  class: { type: String },
+  batch: { type: mongoose.Schema.Types.ObjectId, ref: "Batch" },
+  feesPaid: { type: Number, default: 0 },
+  totalFees: { type: Number, default: 0 },
+  pendingFees: { type: Number, default: 0 },
+  joinDate: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model('Student', StudentSchema);
+module.exports = mongoose.model("Student", studentSchema);
