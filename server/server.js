@@ -20,12 +20,22 @@ const app = express();
 
 // ✅ Middleware
 app.use(express.json());
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true,
-  })
-);
+if (process.env.NODE_ENV === 'production') {
+  app.use(
+    cors({
+      origin: process.env.CLIENT_URL,
+      credentials: true,
+    })
+  );
+} else {
+  // During local development allow requests from any localhost port to ease testing
+  app.use(
+    cors({
+      origin: (origin, cb) => cb(null, true),
+      credentials: true,
+    })
+  );
+}
 
 // ✅ Passport (optional)
 try {

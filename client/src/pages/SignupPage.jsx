@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerInstitute, loginWithGoogle } from "../services/api";
 import { useToast } from "../hooks/useToast";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +13,7 @@ const SignupPage = () => {
     role: "institute", // default role
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
   const { add } = useToast();
@@ -22,6 +23,17 @@ const SignupPage = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    // Basic client-side validation
+    if (!formData.name || !formData.email || !formData.password) {
+      setError("Please fill all fields.");
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
     setLoading(true);
     add("Creating your account...", "info");
 
@@ -31,17 +43,16 @@ const SignupPage = () => {
 
       add("Account created successfully 🎉", "success");
 
-      // Optionally store token if backend returns one
+      // Save token + user for session persistence
       if (res?.token) localStorage.setItem("token", res.token);
+      if (res?.user) localStorage.setItem("user", JSON.stringify(res.user));
 
       // Redirect based on role
-      if (formData.role === "institute") navigate("/dashboard");
+      if ((res.user && res.user.role) === "institute" || formData.role === "institute") navigate("/dashboard");
       else navigate("/student/dashboard");
     } catch (error) {
-      const msg =
-        error?.response?.data?.error ||
-        error?.message ||
-        "Signup failed. Please try again.";
+      const msg = error?.message || "Signup failed. Please try again.";
+      setError(msg);
       add(`Signup failed: ${msg}`, "error");
       console.error("Signup error:", error);
     } finally {
@@ -52,12 +63,18 @@ const SignupPage = () => {
   const handleGoogleSignup = async () => {
     setLoading(true);
     try {
-      const res = await loginWithGoogle();
-      add("Google signup successful 🚀", "success");
-
-      if (res?.token) localStorage.setItem("token", res.token);
-
-      navigate("/dashboard");
+      // loginWithGoogle will redirect the browser for real OAuth flows.
+      // For mock mode it returns a value we can use.
+      const maybe = await loginWithGoogle();
+      if (maybe && maybe.token) {
+        localStorage.setItem("token", maybe.token);
+        if (maybe.user) localStorage.setItem("user", JSON.stringify(maybe.user));
+        add("Google signup successful 🚀", "success");
+        navigate("/dashboard");
+      } else {
+        // If not mock mode, the function will have redirected the browser.
+        // Nothing more to do here.
+      }
     } catch (error) {
       const msg =
         error?.response?.data?.error ||
@@ -72,7 +89,7 @@ const SignupPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-200 via-pink-200 to-yellow-200 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <motion.div
+  <Motion.div
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -84,9 +101,9 @@ const SignupPage = () => {
         <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
           Create your account
         </h2>
-      </motion.div>
+      </Motion.div>
 
-      <motion.div
+  <Motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
@@ -131,8 +148,11 @@ const SignupPage = () => {
               </div>
             ))}
 
+            {/* Error */}
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
             {/* Submit Button */}
-            <motion.button
+            <Motion.button
               type="submit"
               disabled={loading}
               whileHover={{ scale: 1.02 }}
@@ -144,11 +164,11 @@ const SignupPage = () => {
               }`}
             >
               {loading ? "Creating account..." : "Sign Up"}
-            </motion.button>
+            </Motion.button>
           </form>
 
           {/* Google Signup */}
-          <motion.div className="mt-4 text-center">
+          <Motion.div className="mt-4 text-center">
             <button
               onClick={handleGoogleSignup}
               disabled={loading}
@@ -156,7 +176,7 @@ const SignupPage = () => {
             >
               Continue with Google
             </button>
-          </motion.div>
+          </Motion.div>
 
           {/* Redirect to Login */}
           <div className="mt-6 text-center">
@@ -171,7 +191,7 @@ const SignupPage = () => {
             </p>
           </div>
         </div>
-      </motion.div>
+  </Motion.div>
     </div>
   );
 };

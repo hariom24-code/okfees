@@ -4,29 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Load Tailwind via CDN for quick development fallback so utility classes work without full PostCSS build -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Diagnostic: log Tailwind Play CDN initialization and style tags to the console -->
-    <script>
-      (function(){
-        // Wait a short time for the CDN to initialize and inject styles
-        setTimeout(() => {
-          try {
-            const tailwindPresent = typeof window.tailwind !== 'undefined';
-            const styleTags = Array.from(document.querySelectorAll('style'));
-            const tailwindStyle = styleTags.find(s => (s.id && s.id.includes('tailwind')) || (s.innerText && s.innerText.includes('--tw')) );
-            console.info('TAILWIND DIAGNOSTIC:', { tailwindPresent, tailwindStyleId: tailwindStyle ? (tailwindStyle.id || null) : null, styleTagCount: styleTags.length });
-            if (!tailwindPresent) console.warn('Tailwind Play CDN not detected on window.tailwind.');
-            if (!tailwindStyle) console.warn('No injected Tailwind style tag found (no --tw tokens).');
-          } catch (e) {
-            console.error('TAILWIND DIAGNOSTIC ERROR', e);
-          }
-        }, 700);
-      })();
-    </script>
-    <title>client</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <title>OkFees - Transform Your Coaching Institute</title>
   </head>
-  <body>
+  <body class="bg-white text-gray-800 antialiased">
+    <!-- Tailwind CDN (dev fallback) -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

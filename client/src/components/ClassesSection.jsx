@@ -1,4 +1,5 @@
 import React from "react";
+import Card from "./Card";
 
 const ClassesSection = () => {
   const classes = [
@@ -7,18 +8,18 @@ const ClassesSection = () => {
   ];
 
   return (
-    <div className="bg-white shadow rounded p-4">
-      <h3 className="font-semibold mb-2">Live Classes</h3>
-      <ul>
+    <Card>
+      <h3 className="font-semibold mb-2 text-gray-800">Live Classes</h3>
+      <ul className="space-y-2">
         {classes.map((cls, i) => (
-          <li key={i} className="border-b py-2">
-            <p className="font-semibold">{cls.name}</p>
-            <p>Time: {cls.time}</p>
-            <p>Teacher: {cls.teacher}</p>
+          <li key={i} className="border-b border-gray-200 pb-2">
+            <p className="font-semibold text-gray-700">{cls.name}</p>
+            <p className="text-sm text-gray-500">Time: {cls.time}</p>
+            <p className="text-sm text-gray-500">Teacher: {cls.teacher}</p>
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   );
 };
 
