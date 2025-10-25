@@ -31,7 +31,14 @@ const StudentList = ({ batch }) => {
     };
 
     fetchStudents();
-    return () => (mounted = false);
+
+    const onStudentsUpdated = () => fetchStudents();
+    window.addEventListener('students:updated', onStudentsUpdated);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener('students:updated', onStudentsUpdated);
+    };
   }, [batch]);
 
   if (!batch) {

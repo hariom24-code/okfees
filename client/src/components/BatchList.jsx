@@ -19,7 +19,13 @@ const BatchList = ({ onSelectBatch }) => {
       }
     };
     fetchBatches();
-    return () => (mounted = false);
+    // Listen for external updates (create/delete) to refresh list
+    const onBatchesUpdated = () => fetchBatches();
+    window.addEventListener('batches:updated', onBatchesUpdated);
+    return () => {
+      mounted = false;
+      window.removeEventListener('batches:updated', onBatchesUpdated);
+    };
   }, []);
 
   return (

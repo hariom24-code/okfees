@@ -5,9 +5,68 @@ import Topbar from "../components/Topbar";
 import BatchList from "../components/BatchList";
 import StudentList from "../components/StudentList";
 import Card from "../components/Card";
+import API from "../services/api";
+import { useEffect } from "react";
 
 const InstituteDashboard = () => {
   const [selectedBatch, setSelectedBatch] = useState(null);
+  const [summary, setSummary] = useState({ batches: 0, students: 0, fees: 0 });
+  const [showBatchForm, setShowBatchForm] = useState(false);
+  const [showStudentForm, setShowStudentForm] = useState(false);
+  const [batchForm, setBatchForm] = useState({ name: '', subject: '', timing: '', teacherName: '' });
+  const [studentForm, setStudentForm] = useState({ name: '', email: '', phone: '', batch: '' });
+  const [batchesList, setBatchesList] = useState([]);
+
+  // Fetch dashboard summary counts
+  const fetchSummary = async () => {
+    try {
+      const [bres, sres, fres] = await Promise.all([
+        API.get('/batches'),
+        API.get('/students'),
+        API.get('/fees'),
+      ]);
+
+  const batches = bres?.data?.count ?? (bres?.data?.data?.length ?? 0);
+  const batchData = bres?.data?.data || [];
+      const students = sres?.data?.count ?? (sres?.data?.data?.length ?? 0);
+      const feesArr = fres?.data?.data || [];
+      const fees = feesArr.reduce((sum, f) => sum + (f.amount || 0), 0);
+
+  setSummary({ batches, students, fees });
+  setBatchesList(batchData);
+    } catch (err) {
+      console.error('Failed to fetch dashboard summary', err);
+    }
+  };
+
+  useEffect(() => { fetchSummary(); }, []);
+
+  const createBatch = async (e) => {
+    e.preventDefault();
+    try {
+      await API.post('/batches', batchForm);
+      // Notify other components to refresh
+      window.dispatchEvent(new Event('batches:updated'));
+      setBatchForm({ name: '', subject: '', timing: '', teacherName: '' });
+      setShowBatchForm(false);
+      fetchSummary();
+    } catch (err) {
+      console.error('Create batch failed', err);
+    }
+  };
+
+  const createStudent = async (e) => {
+    e.preventDefault();
+    try {
+      await API.post('/students', studentForm);
+      window.dispatchEvent(new Event('students:updated'));
+      setStudentForm({ name: '', email: '', phone: '', batch: '' });
+      setShowStudentForm(false);
+      fetchSummary();
+    } catch (err) {
+      console.error('Create student failed', err);
+    }
+  };
 
   // Mock upcoming classes (you can replace with API data later)
   const upcoming = [
@@ -55,12 +114,67 @@ const InstituteDashboard = () => {
               <div className="flex items-center space-x-4">
                 <div className="text-right">
                   <div className="text-sm">Active Batches</div>
-                  <div className="font-semibold text-lg">8</div>
+                  <div className="font-semibold text-lg">{summary.batches}</div>
                 </div>
-                <button className="bg-white text-blue-600 px-4 py-2 rounded-md font-semibold">Create Batch</button>
+                <div className="space-x-2">
+                  <button onClick={() => setShowBatchForm((s) => !s)} className="bg-white text-blue-600 px-4 py-2 rounded-md font-semibold">Create Batch</button>
+                  <button onClick={() => setShowStudentForm((s) => !s)} className="bg-white text-blue-600 px-4 py-2 rounded-md font-semibold">Add Student</button>
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Inline forms for create batch / student */}
+          {showBatchForm && (
+            <div className="mb-4">
+              <Card>
+                <form onSubmit={createBatch} className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input required placeholder="Batch name" value={batchForm.name} onChange={(e)=>setBatchForm({...batchForm,name:e.target.value})} className="p-2 border rounded" />
+                    <input placeholder="Subject" value={batchForm.subject} onChange={(e)=>setBatchForm({...batchForm,subject:e.target.value})} className="p-2 border rounded" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input placeholder="Timing" value={batchForm.timing} onChange={(e)=>setBatchForm({...batchForm,timing:e.target.value})} className="p-2 border rounded" />
+                    <input placeholder="Teacher" value={batchForm.teacherName} onChange={(e)=>setBatchForm({...batchForm,teacherName:e.target.value})} className="p-2 border rounded" />
+                  </div>
+                  <div className="flex space-x-2">
+                    <button type="submit" className="bg-blue-600 text-white px-3 py-1 rounded">Create</button>
+                    <button type="button" onClick={()=>setShowBatchForm(false)} className="px-3 py-1 rounded border">Cancel</button>
+                  </div>
+                </form>
+              </Card>
+            </div>
+          )}
+
+          {showStudentForm && (
+            <div className="mb-4">
+              <Card>
+                <form onSubmit={createStudent} className="space-y-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <input required placeholder="Student name" value={studentForm.name} onChange={(e)=>setStudentForm({...studentForm,name:e.target.value})} className="p-2 border rounded" />
+                    <input required placeholder="Email" value={studentForm.email} onChange={(e)=>setStudentForm({...studentForm,email:e.target.value})} className="p-2 border rounded" />
+                    <input placeholder="Phone" value={studentForm.phone} onChange={(e)=>setStudentForm({...studentForm,phone:e.target.value})} className="p-2 border rounded" />
+                  </div>
+                  <div>
+                    <select value={studentForm.batch} onChange={(e)=>setStudentForm({...studentForm,batch:e.target.value})} className="p-2 border rounded w-full">
+                      <option value="">Select Batch (optional)</option>
+                      {batchesList.length === 0 ? (
+                        <option disabled>Loading batches...</option>
+                      ) : (
+                        batchesList.map((b) => (
+                          <option key={b._id || b.id} value={b._id || b.id}>{b.name || b.title || `Batch ${b._id || b.id}`}</option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button type="submit" className="bg-blue-600 text-white px-3 py-1 rounded">Create Student</button>
+                    <button type="button" onClick={()=>setShowStudentForm(false)} className="px-3 py-1 rounded border">Cancel</button>
+                  </div>
+                </form>
+              </Card>
+            </div>
+          )}
 
           <div className="grid grid-cols-12 gap-6">
             {/* Left quick/profile column */}
