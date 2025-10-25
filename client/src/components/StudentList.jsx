@@ -55,7 +55,7 @@ const StudentList = ({ batch }) => {
               className="border-b border-gray-200 pb-2 flex justify-between text-gray-700"
             >
               <span>{s.name}</span>
-              <span className="text-gray-500">{s.father}</span>
+              <span className="text-gray-500">{s.parentName || s.father || s.phone || ''}</span>
             </li>
           ))}
         </ul>

@@ -8,7 +8,8 @@ const Sidebar = () => {
       <ul className="space-y-4">
         <li><Link to="/dashboard">🏠 Dashboard</Link></li>
         <li><Link to="/batches">👨‍🎓 Batches</Link></li>
-        <li>📰 News</li>
+        <li><Link to="/fees">💳 Fees</Link></li>
+        <li><Link to="/events">📰 Events</Link></li>
         <li>⚙️ Settings</li>
         <li>🚪 Logout</li>
       </ul>

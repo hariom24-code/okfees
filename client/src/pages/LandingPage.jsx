@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "../components/Navbar.jsx";
 import Hero from "../Hero.jsx";
+import SignupPage from "./SignupPage.jsx";
 import StudentSearch from "./StudentSearch.jsx";
 import Features from "./Features.jsx";
 import Testimonials from "./Testimonials.jsx";
@@ -24,6 +25,10 @@ const LandingPage = () => {
         <CTA />
         <FAQ />
         <Newsletter />
+        {/* Inline signup so users can access it from the landing page */}
+        <section id="signup" className="mt-12">
+          <SignupPage />
+        </section>
       </main>
       <Footer />
     </div>

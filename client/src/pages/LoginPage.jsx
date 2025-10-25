@@ -1,7 +1,7 @@
 // src/pages/LoginPage.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginInstitute } from "../services/api"; // optional: real API call
+import { loginInstitute } from "../services/api";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -23,15 +23,13 @@ const LoginPage = () => {
     try {
       setLoading(true);
 
-      // ✅ Uncomment this when backend is connected:
-      // const res = await loginInstitute({ email, password, role });
-      // localStorage.setItem("token", res.token);
-      // localStorage.setItem("user", JSON.stringify(res.user));
+      // Call backend login
+      const res = await loginInstitute({ email, password, role });
 
-      // 🔹 For now: mock success
-      localStorage.setItem("user", JSON.stringify({ email, role }));
+      if (res?.token) localStorage.setItem("token", res.token);
+      if (res?.user) localStorage.setItem("user", JSON.stringify(res.user));
 
-      if (role === "institute") navigate("/dashboard");
+      if ((res.user && res.user.role) === "institute" || role === "institute") navigate("/dashboard");
       else navigate("/student/dashboard");
     } catch {
       setError("Invalid login credentials.");
