@@ -5,7 +5,13 @@ const Student = require('../models/Student');
 // @access  Public
 exports.getStudents = async (req, res, next) => {
   try {
-    const students = await Student.find();
+    // Allow filtering by batch id via query param `batch` or `batchId`
+    const filter = {};
+    if (req.query.batch || req.query.batchId) {
+      filter.batch = req.query.batch || req.query.batchId;
+    }
+
+    const students = await Student.find(filter);
     res.status(200).json({ success: true, count: students.length, data: students });
   } catch (err) {
     res.status(400).json({ success: false });

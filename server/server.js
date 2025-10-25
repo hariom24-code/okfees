@@ -63,12 +63,18 @@ const authRoutes = require("./routes/auth");
 const studentRoutes = require("./routes/studentRoutes");
 const batchRoutes = require("./routes/batchRoutes");
 const mockAuthRoutes = require("./routes/mockAuth");
+const feeRoutes = require("./routes/feeRoutes");
+const eventRoutes = require("./routes/eventRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
 
 // ✅ Mount Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/batches", batchRoutes);
 app.use("/api/mock/auth", mockAuthRoutes);
+app.use("/api/fees", feeRoutes);
+app.use("/api/events", eventRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // ✅ Root
 app.get("/", (req, res) => {
