@@ -2,18 +2,18 @@ import React from "react";
 
 const Topbar = () => {
   return (
-    <div className="bg-white shadow p-3 flex justify-between items-center">
+    <div className="card flex items-center justify-between gap-4">
       <input
         type="text"
         placeholder="Search student..."
-        className="border rounded p-2 w-1/3"
+        className="p-2 border rounded-md w-1/3 focus:outline-none focus:ring-2 focus:ring-primary-400"
       />
       <div className="flex items-center space-x-4">
-        <button>🔔</button>
+        <button className="btn btn-ghost" aria-label="notifications">🔔</button>
         <img
           src="/assets/react.svg"
           alt="profile"
-          className="w-8 h-8 rounded-full"
+          className="w-9 h-9 rounded-full ring-2 ring-white"
         />
       </div>
     </div>

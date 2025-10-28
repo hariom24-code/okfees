@@ -7,6 +7,7 @@ import StudentList from "../components/StudentList";
 import Card from "../components/Card";
 import API from "../services/api";
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const InstituteDashboard = () => {
   const [selectedBatch, setSelectedBatch] = useState(null);
@@ -16,6 +17,12 @@ const InstituteDashboard = () => {
   const [batchForm, setBatchForm] = useState({ name: '', subject: '', timing: '', teacherName: '' });
   const [studentForm, setStudentForm] = useState({ name: '', email: '', phone: '', batch: '' });
   const [batchesList, setBatchesList] = useState([]);
+  const [creatingBatch, setCreatingBatch] = useState(false);
+  const [creatingStudent, setCreatingStudent] = useState(false);
+  const [announcements, setAnnouncements] = useState([]);
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
+  const [announcementText, setAnnouncementText] = useState('');
+  const navigate = useNavigate();
 
   // Fetch dashboard summary counts
   const fetchSummary = async () => {
@@ -43,6 +50,7 @@ const InstituteDashboard = () => {
 
   const createBatch = async (e) => {
     e.preventDefault();
+    setCreatingBatch(true);
     try {
       await API.post('/batches', batchForm);
       // Notify other components to refresh
@@ -52,11 +60,14 @@ const InstituteDashboard = () => {
       fetchSummary();
     } catch (err) {
       console.error('Create batch failed', err);
+    } finally {
+      setCreatingBatch(false);
     }
   };
 
   const createStudent = async (e) => {
     e.preventDefault();
+    setCreatingStudent(true);
     try {
       await API.post('/students', studentForm);
       window.dispatchEvent(new Event('students:updated'));
@@ -65,7 +76,17 @@ const InstituteDashboard = () => {
       fetchSummary();
     } catch (err) {
       console.error('Create student failed', err);
+    } finally {
+      setCreatingStudent(false);
     }
+  };
+
+  const addAnnouncement = (e) => {
+    e.preventDefault();
+    if (!announcementText.trim()) return;
+    setAnnouncements((s) => [{ text: announcementText.trim(), createdAt: new Date() }, ...s]);
+    setAnnouncementText('');
+    setShowAnnouncementForm(false);
   };
 
   // Mock upcoming classes (you can replace with API data later)
@@ -138,7 +159,9 @@ const InstituteDashboard = () => {
                     <input placeholder="Teacher" value={batchForm.teacherName} onChange={(e)=>setBatchForm({...batchForm,teacherName:e.target.value})} className="p-2 border rounded" />
                   </div>
                   <div className="flex space-x-2">
-                    <button type="submit" className="bg-blue-600 text-white px-3 py-1 rounded">Create</button>
+                    <button type="submit" disabled={creatingBatch} className="bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-60">
+                      {creatingBatch ? 'Creating...' : 'Create'}
+                    </button>
                     <button type="button" onClick={()=>setShowBatchForm(false)} className="px-3 py-1 rounded border">Cancel</button>
                   </div>
                 </form>
@@ -168,7 +191,7 @@ const InstituteDashboard = () => {
                     </select>
                   </div>
                   <div className="flex space-x-2">
-                    <button type="submit" className="bg-blue-600 text-white px-3 py-1 rounded">Create Student</button>
+                    <button type="submit" disabled={creatingStudent} className="bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-60">{creatingStudent ? 'Adding...' : 'Create Student'}</button>
                     <button type="button" onClick={()=>setShowStudentForm(false)} className="px-3 py-1 rounded border">Cancel</button>
                   </div>
                 </form>
@@ -189,17 +212,38 @@ const InstituteDashboard = () => {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <button className="w-full bg-blue-600 text-white py-2 rounded">Add Announcement</button>
+                  <button onClick={() => setShowAnnouncementForm((s) => !s)} className="w-full bg-blue-600 text-white py-2 rounded">{showAnnouncementForm ? 'Cancel' : 'Add Announcement'}</button>
                 </div>
+                {showAnnouncementForm && (
+                  <div className="mt-3">
+                    <form onSubmit={addAnnouncement} className="space-y-2">
+                      <textarea value={announcementText} onChange={(e)=>setAnnouncementText(e.target.value)} placeholder="Write announcement..." className="w-full p-2 border rounded" />
+                      <div className="flex space-x-2">
+                        <button type="submit" className="bg-green-600 text-white px-3 py-1 rounded">Add</button>
+                        <button type="button" onClick={()=>setShowAnnouncementForm(false)} className="px-3 py-1 rounded border">Cancel</button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+                {announcements.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <h4 className="font-semibold">Announcements</h4>
+                    <ul className="text-sm text-gray-700">
+                      {announcements.map((a, i) => (
+                        <li key={i} className="border-b pb-1">{a.text} <div className="text-xs text-gray-400">{new Date(a.createdAt).toLocaleString()}</div></li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </Card>
 
               <Card>
                 <h3 className="font-semibold mb-3">Quick Links</h3>
                 <ul className="space-y-2 text-sm text-gray-700">
-                  <li className="hover:text-blue-600 cursor-pointer">💳 Payments</li>
-                  <li className="hover:text-blue-600 cursor-pointer">📅 Timetable</li>
-                  <li className="hover:text-blue-600 cursor-pointer">👥 Teachers</li>
-                  <li className="hover:text-blue-600 cursor-pointer">⚙️ Settings</li>
+                  <li onClick={() => navigate('/fees')} className="hover:text-blue-600 cursor-pointer">💳 Payments</li>
+                  <li onClick={() => navigate('/events')} className="hover:text-blue-600 cursor-pointer">📅 Timetable</li>
+                  <li onClick={() => setShowAnnouncementForm(true)} className="hover:text-blue-600 cursor-pointer">👥 Teachers</li>
+                  <li onClick={() => setShowAnnouncementForm(true)} className="hover:text-blue-600 cursor-pointer">⚙️ Settings</li>
                 </ul>
               </Card>
             </div>
@@ -235,9 +279,9 @@ const InstituteDashboard = () => {
               <div className="space-y-4">
                 <Card>
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">Batches</h3>
-                    <button className="text-blue-600 text-sm">+ New</button>
-                  </div>
+                      <h3 className="font-semibold">Batches</h3>
+                      <button onClick={() => setShowBatchForm(true)} className="text-blue-600 text-sm">+ New</button>
+                    </div>
                   <div className="mt-3">
                     <BatchList onSelectBatch={setSelectedBatch} />
                   </div>

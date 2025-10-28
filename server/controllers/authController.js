@@ -19,6 +19,7 @@ const generateToken = (id, role) => {
 // 🧾 REGISTER CONTROLLER
 exports.register = async (req, res) => {
   try {
+    console.log('Register request body:', req.body);
     const { name, email, password, role } = req.body;
 
     if (!name || !email || !password || !role)
@@ -30,13 +31,17 @@ exports.register = async (req, res) => {
     if (existingUser)
       return res.status(400).json({ error: "User already exists with this email." });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await Model.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
+    // For Student model we don't have a pre-save hook to hash passwords,
+    // so hash explicitly for students. For Institute the model has a
+    // pre-save hook which will hash the password, so pass the raw
+    // password and let mongoose middleware handle it.
+    let user;
+    if (role === 'student') {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user = await Model.create({ name, email, password: hashedPassword });
+    } else {
+      user = await Model.create({ name, email, password });
+    }
 
     const token = generateToken(user._id, role);
 
@@ -48,7 +53,9 @@ exports.register = async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Register Error:", err);
-    res.status(500).json({ error: "Server error during registration." });
+    const payload = { error: err.message || "Server error during registration." };
+    if (process.env.NODE_ENV !== 'production') payload.stack = err.stack;
+    res.status(500).json(payload);
   }
 };
 

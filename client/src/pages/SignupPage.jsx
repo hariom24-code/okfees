@@ -51,9 +51,11 @@ const SignupPage = () => {
       if ((res.user && res.user.role) === "institute" || formData.role === "institute") navigate("/dashboard");
       else navigate("/student/dashboard");
     } catch (error) {
-      const msg = error?.message || "Signup failed. Please try again.";
-      setError(msg);
-      add(`Signup failed: ${msg}`, "error");
+      // Prefer backend-provided error message when available
+      const backendMsg = error?.response?.data?.error || error?.response?.data || null;
+      const msg = backendMsg || error?.message || "Signup failed. Please try again.";
+      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      add(`Signup failed: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`, "error");
       console.error("Signup error:", error);
     } finally {
       setLoading(false);
